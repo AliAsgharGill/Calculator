@@ -6,7 +6,7 @@ const Button = ({ value, onClick, className }) => {
     };
 
     return (
-        <button className={` flex justify-center items-center p-4 text-xl rounded ${className} `} onClick={handleClick}>
+        <button className={`flex justify-center items-center p-4 text-xl rounded ${className} `} onClick={handleClick}>
             {value}
         </button>
     );
@@ -15,6 +15,7 @@ const Button = ({ value, onClick, className }) => {
 Button.propTypes = {
     value: PropTypes.string.isRequired,
     onClick: PropTypes.func.isRequired,
+    className: PropTypes.func.isRequired,
 };
 
 export default Button;
