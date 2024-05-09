@@ -1,10 +1,9 @@
 import { useState, useEffect } from 'react';
 import Button from './Button';
-import { CgBackspace } from "react-icons/cg";
-import { FaDivide } from "react-icons/fa6";
 import { CiSun } from "react-icons/ci";
 import { IoCloudyNightSharp } from "react-icons/io5";
 import { BiHistory } from "react-icons/bi";
+import History from './History';
 
 const Calculator = () => {
   const [expression, setExpression] = useState('');
@@ -38,25 +37,71 @@ const Calculator = () => {
     };
   }, []);
 
+
   const handleButtonClick = (value) => {
-    if (value === '%') {
-      setExpression((prevExpression) => {
-        if (prevExpression.trim() === '') {
-          return '';
-        }
-        const parts = prevExpression.split('-');
-        if (parts.length === 2 && !isNaN(parts[0].trim()) && !isNaN(parts[1].trim())) {
-          const number = parseFloat(parts[0]);
-          const percentage = parseFloat(parts[1]) / 100;
-          const result = number - (number * percentage);
-          return result.toString();
-        }
-        return prevExpression;
-      });
-    } else {
-      setExpression((prevExpression) => prevExpression + value);
+    switch (value) {
+      case 'C':
+        handleClear();
+        break;
+      case '%':
+        handlePercentage();
+        break;
+      case '00':
+        setExpression((prevExpression) => prevExpression + '00');
+        break;
+      case '=':
+        handleCalculate();
+        break;
+      case '⌫':
+        handleDelete();
+        break;
+      case '÷':
+        setExpression((prevExpression) => prevExpression + '/');
+        break;
+      default:
+        setExpression((prevExpression) => prevExpression + value);
+        break;
     }
   };
+
+  const handlePercentage = () => {
+    setExpression((prevExpression) => {
+      if (prevExpression.trim() === '') {
+        return '';
+      }
+
+      const parts = prevExpression.split(/(\+|-|\*|\/)/);
+      if (parts.length === 3) {
+        const number = parseFloat(parts[0]);
+        const operator = parts[1];
+        const percentage = parseFloat(parts[2]) / 100;
+        let result = 0;
+
+        switch (operator) {
+          case '-':
+            result = number - (number * percentage);
+            break;
+          case '+':
+            result = number + (number * percentage);
+            break;
+          case '*':
+            result = number * (1 + percentage);
+            break;
+          case '/':
+            result = number / (1 + percentage);
+            break;
+          default:
+            break;
+        }
+
+        return result.toString();
+      }
+
+      return prevExpression;
+    });
+  };
+
+
 
 
   const handleCalculate = () => {
@@ -92,34 +137,26 @@ const Calculator = () => {
   const themeIcon = theme === 'light' ? <IoCloudyNightSharp /> : <CiSun />;
   const themeText = theme === 'light' ? 'Dark' : 'Light';
 
+  const buttonValues = [
+    "C", "%", "⌫", "÷",
+    "7", "8", "9", "*",
+    "4", "5", "6", "-",
+    "1", "2", "3", "+",
+    "00", "0", ".", "="
+  ];
+
   return (
     <div className='flex justify-center items-center'>
-      {showHistory && (
-        // <div className={` text-2xl text-end p-5 flex-col space-y-10 justify-evenly ${showHistory ? 'opacity-100 transition-opacity  duration-1000' : 'opacity-0'}`}>
-        <div className={`text-2xl text-end p-5 flex-col space-y-10 justify-evenly opacity-100 transition-opacity duration-1000`}>
+      {/* History */}
+      <History
+        history={history}
+        showHistory={showHistory}
+        theme={theme}
+        setHistory={setHistory}
+        setShowHistory={setShowHistory}
+      />
 
-          <div className='flex flex-col  justify-between  '>
-            <div className="overflow-y-auto max-h-80 mt-28 scroll-m-0 history-panel ">
-              <div className="divide-y divide-gray-200">
-                {history.map((item, index) => (
-                  <div key={index} className="py-2">
-                    <p className='text-gray-300 text-xs ' >{item.expression}</p>
-                    <p className={` text-sm ${theme === 'dark' ? 'bg-gray-800 text-white ' : 'bg-white text-black'}`} >{item.result}</p>
-                  </div>
-                ))}
-              </div>
-            </div>
-            <div className='flex justify-center items-center '>
-              {history.length > 0 ?
-
-                <h2 className={` text-sm cursor-pointer text-[#48D0CE] justify-center ${theme === 'dark' ? 'bg-gray-800 text-teal-300 ' : 'bg-white text-teal-300'}  `} onClick={() => { setHistory([]), setShowHistory(false) }}>Clear</h2>
-                : ""
-              }
-            </div>
-          </div>
-        </div>
-      )}
-      <div className='space-y-20' >
+      <div className={` ${showHistory ? ' transform translate-x-5 transition duration-1000 ' : ''}  space-y-20`} >
         <label htmlFor="" className='text-teal-400 font-bold ' >Calculator</label>
         <div>
           <div className='flex justify-between items-center space-x-2 ' >
@@ -133,27 +170,11 @@ const Calculator = () => {
             <div className="display flex justify-center flex-col">
               <input type="text" value={expression} readOnly className={`w-64 text-2xl outline-none bg-transparent h-20 p-5 `} />
             </div>
+            {/* Buttons Using map  */}
             <div className="keypad grid grid-cols-4 gap-1">
-              <Button value="C" onClick={handleClear} />
-              <Button value="%" onClick={() => handleButtonClick('%')} />
-              <Button value={<CgBackspace />} onClick={handleDelete} />
-              <Button value={<FaDivide className='fill-[#48D0CE]' />} onClick={() => handleButtonClick('/')} />
-              <Button value="7" onClick={() => handleButtonClick('7')} />
-              <Button value="8" onClick={() => handleButtonClick('8')} />
-              <Button value="9" onClick={() => handleButtonClick('9')} />
-              <Button className="text-[#48D0CE]" value="x" onClick={() => handleButtonClick('*')} />
-              <Button value="4" onClick={() => handleButtonClick('4')} />
-              <Button value="5" onClick={() => handleButtonClick('5')} />
-              <Button value="6" onClick={() => handleButtonClick('6')} />
-              <Button className="text-[#48D0CE]" value="-" onClick={() => handleButtonClick('-')} />
-              <Button value="1" onClick={() => handleButtonClick('1')} />
-              <Button value="2" onClick={() => handleButtonClick('2')} />
-              <Button value="3" onClick={() => handleButtonClick('3')} />
-              <Button className="text-[#48D0CE]" value="+" onClick={() => handleButtonClick('+')} />
-              <Button value="00" onClick={() => handleButtonClick('00')} />
-              <Button value="0" onClick={() => handleButtonClick('0')} />
-              <Button value="." onClick={() => handleButtonClick('.')} />
-              <Button className="text-[#48D0CE]" value="=" onClick={handleCalculate} />
+              {buttonValues.map((value, index) => (
+                <Button key={index} value={value} onClick={() => handleButtonClick(value)} />
+              ))}
             </div>
           </div>
         </div>
